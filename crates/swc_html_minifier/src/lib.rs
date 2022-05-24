@@ -512,6 +512,8 @@ impl VisitMut for Minifier {
             _ => true,
         });
 
+        n.attributes.sort_by_key(|attribute| attribute.name.clone());
+
         let mut already_seen: AHashSet<JsWord> = Default::default();
 
         n.attributes.retain(|attribute| {
