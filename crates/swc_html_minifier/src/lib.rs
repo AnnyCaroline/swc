@@ -2,7 +2,7 @@
 
 use serde_json::Value;
 use swc_atoms::{js_word, JsWord};
-use swc_common::collections::AHashSet;
+use swc_common::collections::{AHashMap, AHashSet};
 use swc_html_ast::*;
 use swc_html_visit::{VisitMut, VisitMutWith};
 
@@ -250,6 +250,7 @@ struct Minifier {
     current_element_tag_name: Option<JsWord>,
     is_script_with_json: bool,
     meta_element_content_type: Option<MetaElementContentType>,
+    attribute_name_counter: AHashMap<JsWord, isize>,
 }
 
 impl Minifier {
@@ -512,7 +513,11 @@ impl VisitMut for Minifier {
             _ => true,
         });
 
-        n.attributes.sort_by_key(|attribute| attribute.name.clone());
+        n.attributes.sort_by(|a, b| {
+            self.attribute_name_counter
+                .get(&b.name)
+                .cmp(&self.attribute_name_counter.get(&a.name))
+        });
 
         let mut already_seen: AHashSet<JsWord> = Default::default();
 
@@ -679,11 +684,29 @@ impl VisitMut for Minifier {
     }
 }
 
+struct AttributeNameCounter {
+    tree: AHashMap<JsWord, isize>,
+}
+
+impl VisitMut for AttributeNameCounter {
+    fn visit_mut_attribute(&mut self, n: &mut Attribute) {
+        n.visit_mut_children_with(self);
+
+        *self.tree.entry(n.name.clone()).or_insert(0) += 1;
+    }
+}
+
 pub fn minify(document: &mut Document) {
+    let mut attribute_name_counter = AttributeNameCounter {
+        tree: Default::default(),
+    };
+
+    document.visit_mut_with(&mut attribute_name_counter);
     document.visit_mut_with(&mut Minifier {
         current_element_namespace: None,
         current_element_tag_name: None,
         is_script_with_json: false,
         meta_element_content_type: None,
+        attribute_name_counter: attribute_name_counter.tree,
     });
 }
