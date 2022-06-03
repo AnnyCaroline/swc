@@ -158,7 +158,7 @@ where
         let last = self.input.last_pos()?;
 
         Ok(Document {
-            span: Span::new(start.lo, last, Default::default()),
+            span: Span::new(start.lo(), last, Default::default()),
             mode: self.document_mode,
             children,
         })
@@ -346,7 +346,7 @@ where
         let last = self.input.last_pos()?;
 
         Ok(DocumentFragment {
-            span: Span::new(start.lo, last, Default::default()),
+            span: Span::new(start.lo(), last, Default::default()),
             children,
         })
     }
@@ -388,15 +388,15 @@ where
                         } else {
                             // Elements and text after `</html>` are moving into `<body>`
                             let end_html = match node.end_tag_span.take() {
-                                Some(end_tag_span) => end_tag_span.hi,
-                                _ => element.span.hi,
+                                Some(end_tag_span) => end_tag_span.hi(),
+                                _ => element.span.hi(),
                             };
                             let end_children = match new_children.last() {
-                                Some(Child::DocumentType(DocumentType { span, .. })) => span.hi,
-                                Some(Child::Element(Element { span, .. })) => span.hi,
-                                Some(Child::Comment(Comment { span, .. })) => span.hi,
-                                Some(Child::Text(Text { span, .. })) => span.hi,
-                                _ => element.span.hi,
+                                Some(Child::DocumentType(DocumentType { span, .. })) => span.hi(),
+                                Some(Child::Element(Element { span, .. })) => span.hi(),
+                                Some(Child::Comment(Comment { span, .. })) => span.hi(),
+                                Some(Child::Text(Text { span, .. })) => span.hi(),
+                                _ => element.span.hi(),
                             };
                             let end = if end_html >= end_children {
                                 end_html
@@ -404,7 +404,7 @@ where
                                 end_children
                             };
 
-                            Span::new(element.span.lo, end, Default::default())
+                            Span::new(element.span.lo(), end, Default::default())
                         };
 
                         Child::Element(Element {
@@ -428,15 +428,15 @@ where
                         } else {
                             // Elements and text after `</body>` are moving into `<body>`
                             let end_body = match node.end_tag_span.take() {
-                                Some(end_tag_span) => end_tag_span.hi,
-                                _ => element.span.hi,
+                                Some(end_tag_span) => end_tag_span.hi(),
+                                _ => element.span.hi(),
                             };
                             let end_children = match new_children.last() {
-                                Some(Child::DocumentType(DocumentType { span, .. })) => span.hi,
-                                Some(Child::Element(Element { span, .. })) => span.hi,
-                                Some(Child::Comment(Comment { span, .. })) => span.hi,
-                                Some(Child::Text(Text { span, .. })) => span.hi,
-                                _ => element.span.hi,
+                                Some(Child::DocumentType(DocumentType { span, .. })) => span.hi(),
+                                Some(Child::Element(Element { span, .. })) => span.hi(),
+                                Some(Child::Comment(Comment { span, .. })) => span.hi(),
+                                Some(Child::Text(Text { span, .. })) => span.hi(),
+                                _ => element.span.hi(),
                             };
                             let end = if end_body >= end_children {
                                 end_body
@@ -444,7 +444,7 @@ where
                                 end_children
                             };
 
-                            Span::new(element.span.lo, end, Default::default())
+                            Span::new(element.span.lo(), end, Default::default())
                         };
 
                         Child::Element(Element {
@@ -457,16 +457,16 @@ where
                     }
                     "template" if element.namespace == Namespace::HTML => {
                         let end = match node.end_tag_span.take() {
-                            Some(end_tag_span) => end_tag_span.hi,
+                            Some(end_tag_span) => end_tag_span.hi(),
                             _ => match new_children.last() {
-                                Some(Child::DocumentType(DocumentType { span, .. })) => span.hi,
-                                Some(Child::Element(Element { span, .. })) => span.hi,
-                                Some(Child::Comment(Comment { span, .. })) => span.hi,
-                                Some(Child::Text(Text { span, .. })) => span.hi,
-                                _ => element.span.hi,
+                                Some(Child::DocumentType(DocumentType { span, .. })) => span.hi(),
+                                Some(Child::Element(Element { span, .. })) => span.hi(),
+                                Some(Child::Comment(Comment { span, .. })) => span.hi(),
+                                Some(Child::Text(Text { span, .. })) => span.hi(),
+                                _ => element.span.hi(),
                             },
                         };
-                        let span = Span::new(element.span.lo, end, Default::default());
+                        let span = Span::new(element.span.lo(), end, Default::default());
 
                         Child::Element(Element {
                             span,
@@ -484,17 +484,19 @@ where
                             element.span
                         } else {
                             let end = match node.end_tag_span.take() {
-                                Some(end_tag_span) => end_tag_span.hi,
+                                Some(end_tag_span) => end_tag_span.hi(),
                                 _ => match new_children.last() {
-                                    Some(Child::DocumentType(DocumentType { span, .. })) => span.hi,
-                                    Some(Child::Element(Element { span, .. })) => span.hi,
-                                    Some(Child::Comment(Comment { span, .. })) => span.hi,
-                                    Some(Child::Text(Text { span, .. })) => span.hi,
-                                    _ => element.span.hi,
+                                    Some(Child::DocumentType(DocumentType { span, .. })) => {
+                                        span.hi()
+                                    }
+                                    Some(Child::Element(Element { span, .. })) => span.hi(),
+                                    Some(Child::Comment(Comment { span, .. })) => span.hi(),
+                                    Some(Child::Text(Text { span, .. })) => span.hi(),
+                                    _ => element.span.hi(),
                                 },
                             };
 
-                            Span::new(element.span.lo, end, Default::default())
+                            Span::new(element.span.lo(), end, Default::default())
                         };
 
                         Child::Element(Element {
@@ -7266,10 +7268,13 @@ where
             self.insert_at_position(appropriate_place, last_node.clone());
 
             // 15.
-            let last_pos = self.input.last_pos()?;
             let new_element = self.create_element_for_token(
                 formatting_element.2.token.clone(),
-                Span::new(formatting_element.2.span.lo, last_pos, Default::default()),
+                Span::new(
+                    formatting_element.2.span.lo(),
+                    token_and_info.span.hi(),
+                    Default::default(),
+                ),
                 Some(Namespace::HTML),
                 None,
             );
