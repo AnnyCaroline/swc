@@ -8185,8 +8185,8 @@ where
                             }
                         }
 
-                        let first_pos = text.span.lo;
-                        let last_pos = self.input.last_pos()?;
+                        let first_pos = text.span.lo();
+                        let last_pos = token_and_info.span.hi();
                         let index = children.len() - 1;
 
                         children[index] = Node::new(Data::Text(Text {
@@ -8218,8 +8218,8 @@ where
                                     }
                                 }
 
-                                let first_pos = text.span.lo;
-                                let last_pos = self.input.last_pos()?;
+                                let first_pos = text.span.lo();
+                                let last_pos = token_and_info.span.hi();
 
                                 children[i - 1] = Node::new(Data::Text(Text {
                                     span: swc_common::Span::new(
@@ -8242,9 +8242,8 @@ where
         // is the same as that of the element in which the adjusted insertion location
         // finds itself, and insert the newly created node at the adjusted insertion
         // location.
-        let last_pos = self.input.last_pos()?;
         let text = Node::new(Data::Text(Text {
-            span: Span::new(token_and_info.span.lo, last_pos, Default::default()),
+            span: token_and_info.span,
             value: match &token_and_info.token {
                 Token::Character { value, .. } => value.to_string().into(),
                 _ => {
