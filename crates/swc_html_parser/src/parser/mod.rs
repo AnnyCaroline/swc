@@ -1781,12 +1781,11 @@ where
                     //
                     // 10. Switch the insertion mode to "text".
                     Token::StartTag { tag_name, .. } if tag_name == "script" => {
-                        let last_pos = self.input.last_pos()?;
                         let adjusted_insertion_location =
                             self.get_appropriate_place_for_inserting_node(None)?;
                         let node = self.create_element_for_token(
                             token_and_info.token.clone(),
-                            Span::new(token_and_info.span.lo, last_pos, Default::default()),
+                            token_and_info.span,
                             Some(Namespace::HTML),
                             None,
                         );
@@ -7225,11 +7224,7 @@ where
                     };
                 let new_element = self.create_element_for_token(
                     token_and_info.token.clone(),
-                    Span::new(
-                        token_and_info.span.lo,
-                        token_and_info.span.hi,
-                        Default::default(),
-                    ),
+                    token_and_info.span,
                     Some(Namespace::HTML),
                     None,
                 );
@@ -8090,9 +8085,8 @@ where
         // Create a Comment node whose data attribute is set to data and whose
         // node document is the same as that of the node in which the adjusted
         // insertion location finds itself.
-        let last_pos = self.input.last_pos()?;
         let comment = Node::new(Data::Comment(Comment {
-            span: Span::new(token_and_info.span.lo, last_pos, Default::default()),
+            span: token_and_info.span,
             data: match &token_and_info.token {
                 Token::Comment { data } => data.into(),
                 _ => {
@@ -8111,9 +8105,8 @@ where
         &mut self,
         token_and_info: &mut TokenAndInfo,
     ) -> PResult<()> {
-        let last_pos = self.input.last_pos()?;
         let comment = Node::new(Data::Comment(Comment {
-            span: Span::new(token_and_info.span.lo, last_pos, Default::default()),
+            span: token_and_info.span,
             data: match &token_and_info.token {
                 Token::Comment { data } => data.into(),
                 _ => {
@@ -8133,9 +8126,8 @@ where
         &mut self,
         token_and_info: &mut TokenAndInfo,
     ) -> PResult<()> {
-        let last_pos = self.input.last_pos()?;
         let comment = Node::new(Data::Comment(Comment {
-            span: Span::new(token_and_info.span.lo, last_pos, Default::default()),
+            span: token_and_info.span,
             data: match &token_and_info.token {
                 Token::Comment { data } => data.into(),
                 _ => {
