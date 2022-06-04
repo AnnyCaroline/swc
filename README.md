@@ -28,7 +28,7 @@ If you are using SWC from JavaScript, please refer to [docs on the website](http
 
 # Documentation
 
-Check out the documentation [in the website](https://swc.rs/docs/installation/).
+Test - Check out the documentation [in the website](https://swc.rs/docs/installation/).
 
 # Features
 
